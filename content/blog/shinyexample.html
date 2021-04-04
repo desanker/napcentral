@@ -1,0 +1,189 @@
+---
+title: "shinyexample"
+output: html_document
+runtime: shiny
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>library(shiny)
+library(ggplot2)
+library(plyr)
+library(dplyr)</p>
+<div id="section-data-preparation-steps-from-httpsgithub.comenvironmentalstatisticsshiny-1blobmasterscript.r" class="section level1">
+<h1>Data Preparation Steps from <a href="https://github.com/environmentalstatistics/Shiny-1/blob/master/Script.r" class="uri">https://github.com/environmentalstatistics/Shiny-1/blob/master/Script.r</a></h1>
+<p>data &lt;- read.csv(“<a href="https://raw.githubusercontent.com/environmentalstatistics/Shiny-1/master/Dec-2017.csv" class="uri">https://raw.githubusercontent.com/environmentalstatistics/Shiny-1/master/Dec-2017.csv</a>”)</p>
+<p>data<span class="math inline">\(Date &lt;- strptime(as.character(data\)</span>Date.yyyy.MM.dd.),format=“%m/%d/%Y”)
+data<span class="math inline">\(Date &lt;- as.POSIXct(data\)</span>Date)</p>
+<p>data<span class="math inline">\(DateTime &lt;- strptime(as.character(data\)</span>DateTime),format=“%m/%d/%Y %H:%M”)
+data<span class="math inline">\(DateTime &lt;- as.POSIXct(data\)</span>DateTime)</p>
+<p>data<span class="math inline">\(Day &lt;- as.numeric(as.character(strftime(data\)</span>DateTime,format=“%d”)))
+data<span class="math inline">\(Hour &lt;- as.numeric(as.character(strftime(data\)</span>DateTime,format=“%H”)))</p>
+<p>data &lt;- data %&gt;% filter(BC6!=0)</p>
+<p>ui &lt;- fluidPage(</p>
+<p># App title —-
+titlePanel(“Shiny - First Interactive Visualization Example”),</p>
+<p># Sidebar layout with input and output definitions —-
+sidebarLayout(
+# Sidebar panel for inputs —-
+sidebarPanel(</p>
+<pre><code>  # Input: Slider for the number of bins ----
+  selectInput(inputId=&quot;color1&quot;,label=&quot;Choose Color&quot;,choices = c(&quot;Red&quot;=&quot;Red&quot;,&quot;Blue&quot;=&quot;Blue&quot;,&quot;Green&quot;=&quot;Green&quot;),
+              selected = &quot;Blue&quot;,multiple = F),
+  
+  radioButtons(inputId = &quot;border1&quot;,label = &quot;Select Border&quot;,choices = c(&quot;Black&quot;=&quot;#000000&quot;,&quot;White&quot;=&quot;#ffffff&quot;)),
+  
+  selectInput(inputId=&quot;channel1&quot;,label=&quot;Choose Channel&quot;,choices = c(&quot;BC1&quot;=&quot;BC1&quot;,
+                                                                    &quot;BC2&quot;=&quot;BC2&quot;,
+                                                                    &quot;BC3&quot;=&quot;BC3&quot;,
+                                                                    &quot;BC4&quot;=&quot;BC4&quot;,
+                                                                    &quot;BC5&quot;=&quot;BC5&quot;,
+                                                                    &quot;BC6&quot;=&quot;BC6&quot;,
+                                                                    &quot;BC7&quot;=&quot;BC7&quot;),
+              selected = &quot;BC6&quot;,multiple = F),
+  
+  sliderInput(inputId = &quot;bins1xz&quot;,
+              label = &quot;Number of bins:&quot;,
+              min = 1,
+              max = 50,
+              value = 30),
+  
+  sliderInput(inputId = &quot;range1&quot;,
+              label = &quot;Data Range&quot;,
+              min = 1,
+              max = 31,
+              value = c(1,31))
+  
+),
+
+# Main panel for displaying outputs ----
+mainPanel(
+  
+  # Output: Histogram ----
+  plotOutput(outputId = &quot;distPlot&quot;),
+  plotOutput(outputId = &quot;distPlot1&quot;),
+  plotOutput(outputId = &quot;distPlot2&quot;)
+)</code></pre>
+<p>)
+)</p>
+</div>
+<div id="section-define-server-logic-required-to-draw-a-histogram--" class="section level1">
+<h1>Define server logic required to draw a histogram —-</h1>
+<p>server &lt;- function(input, output){</p>
+<p># 1. It is “reactive” and therefore should be automatically
+# re-executed when inputs (input$bins) change
+# 2. Its output type is a plot</p>
+<p>output$distPlot &lt;- renderPlot({</p>
+<pre><code>if(input$color1==&quot;Red&quot;){
+  sColor = &quot;#ff3300&quot;
+}else if(input$color1==&quot;Blue&quot;){
+  sColor = &quot;#3399ff&quot;
+}else if(input$color1==&quot;Green&quot;){
+  sColor = &quot;#66ff33&quot;
+}
+
+p2 &lt;- data %&gt;%  filter(Day &gt;= input$range1[1] &amp; Day &lt;= input$range1[2]) %&gt;% ggplot()
+if(input$channel1 == &quot;BC1&quot;){
+  p2 &lt;- p2 + geom_histogram(aes(x=BC1),bins = input$bins1xz,col=input$border1,fill=sColor)
+}else if(input$channel1 == &quot;BC2&quot;){
+  p2 &lt;- p2 + geom_histogram(aes(x=BC2),bins = input$bins1xz,col=input$border1,fill=sColor)
+}else if(input$channel1 == &quot;BC3&quot;){
+  p2 &lt;- p2 + geom_histogram(aes(x=BC3),bins = input$bins1xz,col=input$border1,fill=sColor)
+}else if(input$channel1 == &quot;BC4&quot;){
+  p2 &lt;- p2 + geom_histogram(aes(x=BC4),bins = input$bins1xz,col=input$border1,fill=sColor)
+}else if(input$channel1 == &quot;BC5&quot;){
+  p2 &lt;- p2 + geom_histogram(aes(x=BC5),bins = input$bins1xz,col=input$border1,fill=sColor)
+}else if(input$channel1 == &quot;BC6&quot;){
+  p2 &lt;- p2 + geom_histogram(aes(x=BC6),bins = input$bins1xz,col=input$border1,fill=sColor)
+}else if(input$channel1 == &quot;BC7&quot;){
+  p2 &lt;- p2 + geom_histogram(aes(x=BC7),bins = input$bins1xz,col=input$border1,fill=sColor)
+}
+p2 &lt;- p2 +  theme_bw()+
+  theme(axis.title = element_text(size=12,color=&quot;BLACK&quot;,face=&quot;bold&quot;),
+        axis.text = element_text(size=14,color=&quot;BLACK&quot;,face=&quot;bold&quot;))+
+  labs(x=&quot;Black Carbon (ng/m3)&quot;,y=&quot;Count&quot;,title=paste(&quot;Black Carbon Concentration Histogram&quot;,input$channel1,sep = &quot; &quot;))
+
+p2
+#hist(x, breaks = bins, col = sColor, border = input$border1,
+#     xlab = &quot;Waiting time to next eruption (in mins)&quot;,
+#     main = &quot;Histogram of waiting times&quot;)</code></pre>
+<p>})</p>
+<p>output$distPlot1 &lt;- renderPlot({</p>
+<pre><code>p1 &lt;- data  %&gt;%  filter(Day &gt;= input$range1[1] &amp; Day &lt;= input$range1[2]) %&gt;% ggplot(aes(x=DateTime))
+if(input$channel1 == &quot;BC1&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC1,col=&quot;BC1&quot;),size=0.5)
+}else
+if(input$channel1 == &quot;BC2&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC2,col=&quot;BC2&quot;),size=0.5)
+}else
+if(input$channel1 == &quot;BC3&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC3,col=&quot;BC3&quot;),size=0.5)
+}else
+if(input$channel1 == &quot;BC4&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC4,col=&quot;BC4&quot;),size=0.5)
+}else
+if(input$channel1 == &quot;BC5&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC5,col=&quot;BC5&quot;),size=0.5)
+}else
+if(input$channel1 == &quot;BC6&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC6,col=&quot;BC6&quot;),size=0.5)
+}else
+if(input$channel1 == &quot;BC7&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC7,col=&quot;BC7&quot;),size=0.5)
+}
+p1 &lt;- p1 +  theme_bw()+
+  theme(axis.title = element_text(size=12,color=&quot;BLACK&quot;,face=&quot;bold&quot;),
+        axis.text = element_text(size=14,color=&quot;BLACK&quot;,face=&quot;bold&quot;))+
+  labs(x=&quot;Time&quot;,y=&quot;Black Carbon (ng/m3)&quot;,title=&quot;Black Carbon Concentration in Air - Dec, 2017&quot;,colour=&quot;Channel&quot;)
+
+p1</code></pre>
+<p>})</p>
+<p>output<span class="math inline">\(distPlot2 &lt;- renderPlot({  d &lt;- data %&gt;% filter(Day &gt;= input\)</span>range1[1] &amp; Day &lt;= input$range1[2])</p>
+<pre><code>d &lt;- ddply(d, .variables = c(&quot;Hour&quot;),function(x){
+  
+  BC1avg &lt;- mean(x$BC1,na.rm = T)
+  BC2avg &lt;- mean(x$BC2,na.rm = T)
+  BC3avg &lt;- mean(x$BC3,na.rm = T)
+  BC4avg &lt;- mean(x$BC4,na.rm = T)
+  BC5avg &lt;- mean(x$BC5,na.rm = T)
+  BC6avg &lt;- mean(x$BC6,na.rm = T)
+  BC7avg &lt;- mean(x$BC7,na.rm = T)
+  
+  data.frame(BC1avg,BC2avg,BC3avg,BC4avg,BC5avg,BC6avg,BC7avg)
+})
+
+p1 &lt;- d %&gt;% ggplot(aes(x=Hour))
+if(input$channel1 == &quot;BC1&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC1avg,col=&quot;BC1&quot;),size=1)
+  p1 &lt;- p1 + geom_point(aes(y=BC1avg))
+}else if(input$channel1 == &quot;BC2&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC2avg,col=&quot;BC2&quot;),size=1)
+  p1 &lt;- p1 + geom_point(aes(y=BC2avg))
+}else if(input$channel1 == &quot;BC3&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC3avg,col=&quot;BC3&quot;),size=1)
+  p1 &lt;- p1 + geom_point(aes(y=BC3avg))
+}else if(input$channel1 == &quot;BC4&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC4avg,col=&quot;BC4&quot;),size=1)
+  p1 &lt;- p1 + geom_point(aes(y=BC4avg))
+}else if(input$channel1 == &quot;BC5&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC5avg,col=&quot;BC5&quot;),size=1)
+  p1 &lt;- p1 + geom_point(aes(y=BC5avg))
+}else if(input$channel1 == &quot;BC6&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC6avg,col=&quot;BC6&quot;),size=1)
+  p1 &lt;- p1 + geom_point(aes(y=BC6avg))
+}else if(input$channel1 == &quot;BC7&quot;){
+  p1 &lt;- p1 + geom_line(aes(y=BC7avg,col=&quot;BC7&quot;),size=1)
+  p1 &lt;- p1 + geom_point(aes(y=BC7avg))
+}
+p1 &lt;- p1 +  theme_bw()+
+  theme(axis.title = element_text(size=12,color=&quot;BLACK&quot;,face=&quot;bold&quot;),
+        axis.text = element_text(size=14,color=&quot;BLACK&quot;,face=&quot;bold&quot;))+
+  labs(x=&quot;Time&quot;,y=&quot;Black Carbon (ng/m3)&quot;,title=&quot;Black Carbon Concentration in Air - Average Diurnal Variation - Dec, 2017&quot;,colour=&quot;Channel&quot;)
+
+p1</code></pre>
+<p>})
+}</p>
+<p>shinyApp(ui = ui, server = server)
+© 2021 GitHub, Inc.</p>
+</div>
